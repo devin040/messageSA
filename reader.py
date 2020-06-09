@@ -14,7 +14,7 @@ import numpy as np
 from nltk.stem.porter import PorterStemmer
 from nltk.tokenize import RegexpTokenizer
 from tqdm import tqdm
-
+import json
 
 porter_stemmer = PorterStemmer()
 tokenizer = RegexpTokenizer(r'\w+')
@@ -43,6 +43,25 @@ def loadDir(name,stemming,lower_case):
         count = count + 1
     return X0
 
+def loadiMessagesDir(name,numfiles,stemming,lower_case):
+    texts = []
+    ret = []
+    with open("./message_data/zun_texts.json", "r") as f:
+        texts = json.load(f)
+    for i in tqdm(range(len(texts))):
+        text = []
+        if lower_case:
+            texts[i][text] = texts[i][text].decode(errors='ignore').lower()
+            text = tokenizer.tokenize(text[i][text])
+        else:
+            text = tokenizer.tokenize(texts[i][text].decode(errors='ignore'))
+        if stemming: 
+            for i in range(len(text)):
+                if text[i] in bad_words:
+                    continue
+                text[i] = porter_stemmer(text[i])
+        ret.append((text, texts[i][timestamp], texts[i][from_me]))
+
 def load_dataset(train_dir, dev_dir, stemming, lower_case):
     X0 = loadDir(train_dir + '/pos/',stemming, lower_case)
     X1 = loadDir(train_dir + '/neg/',stemming, lower_case)
@@ -56,4 +75,6 @@ def load_dataset(train_dir, dev_dir, stemming, lower_case):
     Y_test = len(X_test0) * [1] + len(X_test1) * [0]
     Y_test = np.array(Y_test)
 
-    return X,Y,X_test,Y_test
+    X_imessage = loadiMessagesDir(None, None, stemming, lower_case)
+
+    return X,Y,X_test,Y_test, X_imessage

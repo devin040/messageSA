@@ -31,22 +31,22 @@ def compute_accuracies(predicted_labels, dev_set, dev_labels):
 
 
 def main(args):
-    train_set, train_labels, dev_set, dev_labels = reader.load_dataset(args.training_dir,args.development_dir,args.stemming,args.lower_case)
-    predicted_labels = nb.naiveBayesMixture(train_set, train_labels, dev_set, args.bigram_lambda, args.unigram_smoothing, args.bigram_smoothing, args.pos_prior)
+    train_set, train_labels, dev_set, dev_labels, imessages = reader.load_dataset(args.training_dir,args.development_dir,args.stemming,args.lower_case)
+    predicted_labels = nb.naiveBayesMixture(train_set, train_labels, dev_set, imessages, args.bigram_lambda, args.unigram_smoothing, args.bigram_smoothing, args.pos_prior)
 
     accuracy, f1, precision, recall = compute_accuracies(predicted_labels, dev_set, dev_labels)
     print("Accuracy:",accuracy)
     print("F1-Score:",f1)
     print("Precision:",precision)
     print("Recall:",recall)
-
+    reader.loadiMessagesDir(None,None,None,None)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='CS440 MP3 Naive Bayes Mixture (Part 2)')
 
-    parser.add_argument('--training', dest='training_dir', type=str, default = '../data/movies_review/train',
+    parser.add_argument('--training', dest='training_dir', type=str, default = './imdb_dataset/train',
                         help='the directory of the training data')
-    parser.add_argument('--development', dest='development_dir', type=str, default = '../data/movies_review/dev',
+    parser.add_argument('--development', dest='development_dir', type=str, default = './imdb_dataset/dev',
                         help='the directory of the development data')
     parser.add_argument('--stemming',dest="stemming", type=bool, default=False,
                         help='Use porter stemmer')

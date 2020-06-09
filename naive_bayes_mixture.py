@@ -24,7 +24,7 @@ import nltk
 
 
 
-def naiveBayesMixture(train_set, train_labels, dev_set, bigram_lambda,unigram_smoothing_parameter, bigram_smoothing_parameter, pos_prior):
+def naiveBayesMixture(train_set, train_labels, dev_set, imessages, bigram_lambda,unigram_smoothing_parameter, bigram_smoothing_parameter, pos_prior):
     """
     train_set - List of list of words corresponding with each movie review
     example: suppose I had two reviews 'like this movie' and 'i fall asleep' in my training set
@@ -115,6 +115,40 @@ def naiveBayesMixture(train_set, train_labels, dev_set, bigram_lambda,unigram_sm
             dev_labels.append(0)
             neg_count += 1
 
+    positive_texts = []
+    negative_texts = []
+    all_texts = []
+    pos_count = 0
+    neg_count = 0
+    for message in imessages:
+        positive_unig_prob = math.log(pos_prior)
+        positive_unig_prob += math.log(1 - bigram_lambda)
 
+        positive_bi_prob = math.log(bigram_lambda)
+        positive_bi_prob += math.log(pos_prior)
+
+        negative_unig_prob = math.log(1 - pos_prior)
+        negative_unig_prob += math.log(1 - bigram_lambda)
+
+        negative_bi_prob = math.log(bigram_lambda)
+        negative_bi_prob += math.log(1 - pos_prior)
+
+        negative_bi_prob += math.log(bigram_lambda)
+        for word in message[0]:
+            positive_unig_prob += math.log((positive_counter[word] + unigram_smoothing_parameter)
+                                      / (total_pos_words + (unigram_smoothing_parameter * len(positive_counter.keys()))))
+            negative_unig_prob += math.log((negative_counter[word] + unigram_smoothing_parameter)
+                                      / (total_neg_words + (unigram_smoothing_parameter * len(negative_counter.keys()))))
+        for bigram in nltk.bigrams(review):
+            positive_bi_prob += math.log((pos_bigram_counter[bigram] + bigram_smoothing_parameter)
+                                         / (total_pos_bigrams + (bigram_smoothing_parameter * len(pos_bigram_counter.keys()))))
+            negative_bi_prob += math.log((neg_bigram_counter[bigram] + bigram_smoothing_parameter)
+                                         / (total_neg_bigrams + (bigram_smoothing_parameter * len(neg_bigram_counter.keys()))))
+        if positive_unig_prob + positive_bi_prob > negative_unig_prob + negative_bi_prob:
+            positive_texts.append(message[0], message[1], message[2])
+            pos_count += 1
+        else:
+            dev_labels.append(0)
+            neg_count += 1
     # return predicted labels of development set (make sure it's a list, not a numpy array or similar)
     return dev_labels

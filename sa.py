@@ -44,9 +44,9 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='CS440 MP3 Naive Bayes')
 
-    parser.add_argument('--training', dest='training_dir', type=str, default = '../data/movies_review/train',
+    parser.add_argument('--training', dest='training_dir', type=str, default = './imdb_dataset/train',
                         help='the directory of the training data')
-    parser.add_argument('--development', dest='development_dir', type=str, default = '../data/movies_review/dev',
+    parser.add_argument('--development', dest='development_dir', type=str, default = './imdb_dataset/dev',
                         help='the directory of the development data')
     parser.add_argument('--stemming',dest="stemming", type=bool, default=False,
                         help='Use porter stemmer')
