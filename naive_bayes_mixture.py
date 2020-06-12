@@ -120,6 +120,7 @@ def naiveBayesMixture(train_set, train_labels, dev_set, imessages, bigram_lambda
     all_texts = []
     pos_count = 0
     neg_count = 0
+    pos_prior = .6
     for message in imessages:
         positive_unig_prob = math.log(pos_prior)
         positive_unig_prob += math.log(1 - bigram_lambda)
@@ -139,16 +140,29 @@ def naiveBayesMixture(train_set, train_labels, dev_set, imessages, bigram_lambda
                                       / (total_pos_words + (unigram_smoothing_parameter * len(positive_counter.keys()))))
             negative_unig_prob += math.log((negative_counter[word] + unigram_smoothing_parameter)
                                       / (total_neg_words + (unigram_smoothing_parameter * len(negative_counter.keys()))))
-        for bigram in nltk.bigrams(review):
+        for bigram in nltk.bigrams(message[0]):
             positive_bi_prob += math.log((pos_bigram_counter[bigram] + bigram_smoothing_parameter)
                                          / (total_pos_bigrams + (bigram_smoothing_parameter * len(pos_bigram_counter.keys()))))
             negative_bi_prob += math.log((neg_bigram_counter[bigram] + bigram_smoothing_parameter)
                                          / (total_neg_bigrams + (bigram_smoothing_parameter * len(neg_bigram_counter.keys()))))
         if positive_unig_prob + positive_bi_prob > negative_unig_prob + negative_bi_prob:
-            positive_texts.append(message[0], message[1], message[2])
+            positive_texts.append((positive_unig_prob + positive_bi_prob, message[0], message[1], message[2]))
+            all_texts.append((1, message[0], message[1], message[2]))
             pos_count += 1
         else:
-            dev_labels.append(0)
+            negative_texts.append((negative_bi_prob + negative_unig_prob, message[0], message[1], message[2]))
+            all_texts.append((-1, message[0], message[1], message[2]))
             neg_count += 1
+    with open('pos.txt', 'w+', encoding='utf-8') as o:
+        for i in positive_texts:
+            o.write("" + " ".join(i[1]) + "\n")
+        o.close()
+    with open('neg.txt', 'w+', encoding='utf-8') as o:
+        for i in negative_texts:
+            o.write("" + " ".join(i[1]) + "\n")
+        o.close()
+
+    print(sorted(positive_texts, key=lambda text: text[0])[:100])
+    print(sorted(negative_texts, key=lambda text: text[0])[:100])
     # return predicted labels of development set (make sure it's a list, not a numpy array or similar)
     return dev_labels

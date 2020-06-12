@@ -50,17 +50,23 @@ def loadiMessagesDir(name,numfiles,stemming,lower_case):
         texts = json.load(f)
     for i in tqdm(range(len(texts))):
         text = []
+        if not isinstance(texts[i]['text'], str):
+            continue
         if lower_case:
-            texts[i][text] = texts[i][text].decode(errors='ignore').lower()
-            text = tokenizer.tokenize(text[i][text])
+            lower_text = texts[i]['text'].lower()
+            text = tokenizer.tokenize(lower_text)
         else:
-            text = tokenizer.tokenize(texts[i][text].decode(errors='ignore'))
+            text = texts[i]['text']
+            if not isinstance(text, str):
+                continue
+            text = tokenizer.tokenize(texts[i]['text'])
         if stemming: 
-            for i in range(len(text)):
-                if text[i] in bad_words:
+            for j in range(len(text)):
+                if text[j] in bad_words:
                     continue
-                text[i] = porter_stemmer(text[i])
-        ret.append((text, texts[i][timestamp], texts[i][from_me]))
+                text[j] = porter_stemmer.stem(text[j])
+        ret.append((text, texts[i]['timestamp'], texts[i]['from_me']))
+    return ret
 
 def load_dataset(train_dir, dev_dir, stemming, lower_case):
     X0 = loadDir(train_dir + '/pos/',stemming, lower_case)
