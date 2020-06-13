@@ -19,7 +19,7 @@ import numpy as numpy
 import math
 from collections import Counter
 import nltk
-
+#import pudb; pu.db
 
 
 
@@ -46,9 +46,6 @@ def naiveBayesMixture(train_set, train_labels, dev_set, imessages, bigram_lambda
     pos_prior - positive prior probability (between 0 and 1)
     """
 
-
-
-    # TODO: Write your code here
     positive_counter = Counter()
     negative_counter = Counter()
     total_num_pos_reviews = 0

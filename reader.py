@@ -16,6 +16,7 @@ from nltk.tokenize import RegexpTokenizer
 from tqdm import tqdm
 import json
 
+
 porter_stemmer = PorterStemmer()
 tokenizer = RegexpTokenizer(r'\w+')
 bad_words = {'aed','oed','eed'} # these words fail in nltk stemmer algorithm
@@ -68,6 +69,12 @@ def loadiMessagesDir(name,numfiles,stemming,lower_case):
         ret.append((text, texts[i]['timestamp'], texts[i]['from_me']))
     return ret
 
+def loadiMessagebatches(stemming, lower_case):
+    texts = []
+    ret = [] 
+    with open("./message_data/zun_texts.json", "r") as f:
+        texts = json.load(f)
+    
 def load_dataset(train_dir, dev_dir, stemming, lower_case):
     X0 = loadDir(train_dir + '/pos/',stemming, lower_case)
     X1 = loadDir(train_dir + '/neg/',stemming, lower_case)
