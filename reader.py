@@ -74,7 +74,21 @@ def loadiMessagebatches(stemming, lower_case):
     ret = [] 
     with open("./message_data/zun_texts.json", "r") as f:
         texts = json.load(f)
-    
+    for i in range(0, len(texts), 5):
+        text = ""
+        for j in range(6):
+            text += texts[i+j]['text']
+        if lower_case:
+            text = text.lower()
+        text = tokenizer.tokenize(lower_text)
+        if stemming:
+            for k in range(len(text)):
+                if text[k] in bad_words:
+                    continue
+                text[k] = porter_stemmer.stem(text[k])
+        ret.append(text, texts[i]['timestamp'])
+    return ret
+
 def load_dataset(train_dir, dev_dir, stemming, lower_case):
     X0 = loadDir(train_dir + '/pos/',stemming, lower_case)
     X1 = loadDir(train_dir + '/neg/',stemming, lower_case)
