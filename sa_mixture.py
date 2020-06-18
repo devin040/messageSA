@@ -12,7 +12,7 @@ import argparse
 import configparser
 import copy
 import numpy as np
-
+import pudb; pu.db
 import reader
 import naive_bayes_mixture as nb
 
@@ -29,17 +29,34 @@ def compute_accuracies(predicted_labels, dev_set, dev_labels):
     f1 = 2 * (precision * recall) / (precision + recall)
     return accuracy, f1, precision, recall
 
+def compute_accuracies_sent140(predicted_labels, dev_set, dev_labels):
+    yhats = predicted_labels
+    accuracy = np.mean(yhats == dev_labels)
+    tp = np.sum([yhats[i] == dev_labels[i] and yhats[i] == 4 for i in range(len(yhats))])
+    precision = tp / np.sum([yhats[i] == 4 for i in range(len(yhats))])
+    recall = tp / (np.sum([yhats[i] != dev_labels[i] and yhats[i] == 0 for i in range(len(yhats))]) + tp)
+    f1 = 2 * (precision * recall) / (precision + recall)
+    return accuracy, f1, precision, recall
 
 def main(args):
-    train_set, train_labels, dev_set, dev_labels, imessages = reader.load_dataset(args.training_dir,args.development_dir,args.stemming,args.lower_case)
-    predicted_labels = nb.naiveBayesMixture(train_set, train_labels, dev_set, imessages, args.bigram_lambda, args.unigram_smoothing, args.bigram_smoothing, args.pos_prior)
+    train_set, train_labels, dev_set, dev_labels = reader.load_dataset(args.training_dir,args.development_dir,args.stemming,args.lower_case)
+    imessages, imessage_batches = reader.load_imessage_dataset(args.stemming, args.lower_case)
+    predicted_labels = nb.naiveBayesMixture(train_set, train_labels, dev_set, imessages, imessage_batches, args.bigram_lambda, args.unigram_smoothing, args.bigram_smoothing, args.pos_prior)
 
     accuracy, f1, precision, recall = compute_accuracies(predicted_labels, dev_set, dev_labels)
     print("Accuracy:",accuracy)
     print("F1-Score:",f1)
     print("Precision:",precision)
     print("Recall:",recall)
-    reader.loadiMessagesDir(None,None,None,None)
+
+    train_set, train_labels, dev_set, dev_labels = reader.loadTweets(args.stemming, args.lower_case)
+    predicted_tweet_labels = nb.naiveBayesMixtureSent140(train_set, train_labels, dev_set, args.bigram_lambda, args.unigram_smoothing, args.bigram_smoothing, args.pos_prior)
+
+    accuracy, f1, precision, recall = compute_accuracies_sent140(predicted_tweet_labels, dev_set, dev_labels)
+    print("Accuracy:",accuracy)
+    print("F1-Score:",f1)
+    print("Precision:",precision)
+    print("Recall:",recall)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='CS440 MP3 Naive Bayes Mixture (Part 2)')

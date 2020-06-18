@@ -15,11 +15,17 @@ from nltk.stem.porter import PorterStemmer
 from nltk.tokenize import RegexpTokenizer
 from tqdm import tqdm
 import json
+import pandas as pd
+import pudb; pu.db
+import spacy
+import string
+from spacy.lang.en.stop_words import STOP_WORDS
 
-
+nlp = spacy.load("en_core_web_sm")
 porter_stemmer = PorterStemmer()
 tokenizer = RegexpTokenizer(r'\w+')
 bad_words = {'aed','oed','eed'} # these words fail in nltk stemmer algorithm
+
 def loadDir(name,stemming,lower_case):
     # Loads the files in the folder and returns a list of lists of words from
     # the text in each file
@@ -69,25 +75,81 @@ def loadiMessagesDir(name,numfiles,stemming,lower_case):
         ret.append((text, texts[i]['timestamp'], texts[i]['from_me']))
     return ret
 
-def loadiMessagebatches(stemming, lower_case):
+def loadiMessageBatches(stemming, lower_case):
     texts = []
     ret = [] 
     with open("./message_data/zun_texts.json", "r") as f:
         texts = json.load(f)
-    for i in range(0, len(texts), 5):
+    for i in range(0, len(texts)-6, 6):
         text = ""
         for j in range(6):
-            text += texts[i+j]['text']
+            if texts[i+j]['text'] is not None:
+                text += texts[i+j]['text']
+                text += " "
         if lower_case:
             text = text.lower()
-        text = tokenizer.tokenize(lower_text)
+        text = tokenizer.tokenize(text)
         if stemming:
             for k in range(len(text)):
                 if text[k] in bad_words:
                     continue
                 text[k] = porter_stemmer.stem(text[k])
-        ret.append(text, texts[i]['timestamp'])
+        ret.append((text, texts[i]['timestamp']))
     return ret
+
+def loadTweets(stemming, lower_case):
+    tweets = pd.read_csv('training.1600000.processed.noemoticon.csv', engine='python')
+    tweets_arr = []
+    for row in tweets.itertuples():
+        tweets_arr.append((int(row[0]), row[5]))
+    tweets_arr = np.array(tweets_arr)
+    train_tweets = []
+    train_tweets_ret = []
+    test_tweets = []
+    test_tweets_ret = []
+    for i in tqdm(range(tweets_arr.shape[0])):
+        if i % 2 == 0:
+            train_tweets.append(tweets_arr[i])
+        else:
+            test_tweets.append(tweets_arr[i])
+    train_tweets = train_tweets[::80]
+    test_tweets = test_tweets[::320]
+    np.random.shuffle(train_tweets)
+    np.random.shuffle(test_tweets)
+    tokenized = []
+
+    stop_words = STOP_WORDS
+    train_tweets_ret = [train_tweets[i][1] for i in range(len(train_tweets))]
+    train_tweets_labels = [int(train_tweets[i][0]) for i in range(len(train_tweets))]
+    train_tweets = []
+    for i in train_tweets_ret:
+        tokenized = [token.text for token in nlp(str(i))]
+        if lower_case:
+            tokenized = [text.lower() for text in tokenized]
+        if stemming:
+            for i in range(len(tokenized)):
+                if tokenized[i] in bad_words:
+                    continue
+                tokenized[i]  = porter_stemmer.stem(tokenized[i])
+        train_tweets.append(tokenized)
+
+    test_tweets_ret = [test_tweets[i][1] for i in range(len(test_tweets))]
+    test_tweets_labels = [int(test_tweets[i][0]) for i in range(len(test_tweets))]
+    test_tweets = []
+    for i in test_tweets_ret:
+        tokenized = [token.text for token in nlp(str(i))]
+        if lower_case:
+            tokenized = [text.lower() for text in tokenized]
+        if stemming:
+            for i in range(len(tokenized)):
+                if tokenized[i] in bad_words:
+                    continue
+                tokenized[i]  = porter_stemmer.stem(tokenized[i])
+        test_tweets.append(tokenized)
+    train_tweets_labels = np.array(train_tweets_labels)
+    test_tweets_labels = np.array(test_tweets_labels)
+
+    return train_tweets, train_tweets_labels, test_tweets, test_tweets_labels
 
 def load_dataset(train_dir, dev_dir, stemming, lower_case):
     X0 = loadDir(train_dir + '/pos/',stemming, lower_case)
@@ -101,7 +163,9 @@ def load_dataset(train_dir, dev_dir, stemming, lower_case):
     X_test = X_test0 + X_test1
     Y_test = len(X_test0) * [1] + len(X_test1) * [0]
     Y_test = np.array(Y_test)
+    return X,Y,X_test,Y_test
 
+def load_imessage_dataset(stemming, lower_case):
     X_imessage = loadiMessagesDir(None, None, stemming, lower_case)
-
-    return X,Y,X_test,Y_test, X_imessage
+    X_imessage_batch = loadiMessageBatches(stemming, lower_case)
+    return X_imessage, X_imessage_batch
