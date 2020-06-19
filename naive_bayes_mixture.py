@@ -198,7 +198,7 @@ def naiveBayesMixtureSent140(train_set, train_labels, dev_set, bigram_lambda,uni
     neg_bigram_counter = Counter()
     total_pos_bigrams = 0
     total_neg_bigrams = 0
-
+    pos_prior = .5
     cross_idx = 0
     for review in tqdm(train_set):
         wordlist = set()

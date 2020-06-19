@@ -122,8 +122,13 @@ def loadTweets(stemming, lower_case):
     train_tweets_ret = [train_tweets[i][1] for i in range(len(train_tweets))]
     train_tweets_labels = [int(train_tweets[i][0]) for i in range(len(train_tweets))]
     train_tweets = []
-    for i in train_tweets_ret:
-        tokenized = [token.text for token in nlp(str(i))]
+    print("Learning....")
+    for i in tqdm(train_tweets_ret):
+        tokenized = []
+        for token in nlp(str(i)):
+           # if token.is_punct:
+            #    continue
+            tokenized.append(token.text.lower())
         if lower_case:
             tokenized = [text.lower() for text in tokenized]
         if stemming:
@@ -136,8 +141,13 @@ def loadTweets(stemming, lower_case):
     test_tweets_ret = [test_tweets[i][1] for i in range(len(test_tweets))]
     test_tweets_labels = [int(test_tweets[i][0]) for i in range(len(test_tweets))]
     test_tweets = []
-    for i in test_tweets_ret:
-        tokenized = [token.text for token in nlp(str(i))]
+    print("Evaluating.....")
+    for i in tqdm(test_tweets_ret):
+        tokenized = []
+        for token in nlp(str(i)):
+           # if token.is_punct:
+            #    continue
+            tokenized.append(token.text.lower())
         if lower_case:
             tokenized = [text.lower() for text in tokenized]
         if stemming:

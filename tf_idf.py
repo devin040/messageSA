@@ -68,3 +68,7 @@ def compute_tf_idf(train_set, train_labels, dev_set):
 
     # return list of words (should return a list, not numpy array or similar)
     return idf_array
+
+def prepareDataForPipeline():
+    return  0
+

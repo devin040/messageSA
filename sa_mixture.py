@@ -15,7 +15,9 @@ import numpy as np
 import pudb; pu.db
 import reader
 import naive_bayes_mixture as nb
-
+from sklearn.naive_bayes import CategoricalNB
+from sklean.feature_extraction.text import TfidfVectorizer
+from sklearn.pipeline import Pipeline
 """
 This file contains the main application that is run for Part 2 of this MP.
 """
@@ -57,6 +59,8 @@ def main(args):
     print("F1-Score:",f1)
     print("Precision:",precision)
     print("Recall:",recall)
+
+    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='CS440 MP3 Naive Bayes Mixture (Part 2)')
