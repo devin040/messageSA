@@ -18,8 +18,15 @@ import numpy as np
 import math
 from collections import Counter
 import time
+import pandas as pd
+from tqdm import tqdm
+import spacy
+#import pudb; pu.db
+from sklearn.model_selection import train_test_split
+from spacy.lang.en.stop_words import STOP_WORDS
 
-
+nlp = spacy.load("en_core_web_sm")
+stop_words = STOP_WORDS
 
 def compute_tf_idf(train_set, train_labels, dev_set):
     """
@@ -38,9 +45,6 @@ def compute_tf_idf(train_set, train_labels, dev_set):
             Returned list should have same size as dev_set (one word from each dev_set document)
     """
 
-
-
-    # TODO: Write your code here
     word_counter = Counter()
     idf_array = []
     cross_idx = 0
@@ -69,6 +73,24 @@ def compute_tf_idf(train_set, train_labels, dev_set):
     # return list of words (should return a list, not numpy array or similar)
     return idf_array
 
-def prepareDataForPipeline():
-    return  0
+def prepareTweetsCorpusForPipeline():
+    """
+    Prepare the raw csv file as a list of strings (tweets).
+    """
+    tweets = pd.read_csv('training.1600000.processed.noemoticon.csv', index_col=False, skiprows=lambda x: x%2!=0, engine='python')
+    tweets_arr = []
+    X = tweets["tweet"]
+    ylabels = tweets["sent"]
+    train_tweets, test_tweets, train_labels, test_labels = train_test_split(X, ylabels, test_size=10000, train_size=2500)
 
+    return train_tweets, train_labels, test_tweets, test_labels
+
+def spacy_tokenize(text):
+    tokenized = []
+    for token in nlp(str(text)):
+        #if token.is_punct:
+        #    continue
+        if token.is_space or token.text[0] == '@' or token.text.lower() in stop_words:
+            continue
+        tokenized.append(token.lemma_.lower())
+    return tokenized
