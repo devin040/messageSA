@@ -9,3 +9,7 @@ This project uses:
   - Spacy (tokenizing, stemming)
   - SciKit (classification, metrics)
   - Yellowbrick (viz)
+  
+  
+  # Results
+  ![Confusion Matrix] (https://github.com/devin040/messageSA/blob/master/results/cm.png)
