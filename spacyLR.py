@@ -12,7 +12,7 @@ import math
 import pandas as pd
 from tqdm import tqdm
 import spacy
-import pudb; pu.db
+#import pudb; pu.db
 from sklearn.model_selection import train_test_split
 from spacy.lang.en.stop_words import STOP_WORDS
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer, TfidfTransformer
@@ -26,6 +26,7 @@ from sklearn.svm import LinearSVC, SVC
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import GridSearchCV
 import reader
+from yellowbrick.classifier import ConfusionMatrix
 
 nlp = spacy.load("en_core_web_sm")
 stop_words = STOP_WORDS
@@ -71,6 +72,7 @@ def analyze_imessages_to_file(pipe):
         o.close()
 
 def imdb_classify():
+
     train_set, train_labels, test_set, test_labels = reader.load_imdb_dataset_LR(
                                                                                 './imdb_dataset/train',
                                                                                 './imdb_dataset/dev')
@@ -78,9 +80,18 @@ def imdb_classify():
     train_labels = pd.Series(train_labels)
     test_set = pd.Series(test_set)
     test_labels = pd.Series(test_labels)
+
+    bow_vector = CountVectorizer(tokenizer = spacy_tokenize, ngram_range=(1,1))
+    tf_idf_vector = TfidfTransformer()
+    classifier = LogisticRegression(max_iter=300, solver='saga')
+
     imdb_pipe = Pipeline([('vectorizer', bow_vector),
                      ('tfidf', tf_idf_vector),
                      ('classifier', classifier)])
+    cm = ConfusionMatrix(imdb_pipe, classes=[0,1], label_encoder={0:'neg', 1:'pos'})
+    cm.fit(train_set, train_labels)
+    cm.score(test_set, test_labels)
+    cm.show(outpath="cm.png")
     imdb_pipe.fit(train_set, train_labels)
     predicted_labels = imdb_pipe.predict(test_set)
     print("-----------LogisticRegression------------------")
@@ -88,7 +99,7 @@ def imdb_classify():
     print("Precision",metrics.precision_score(test_labels,predicted_labels, pos_label=1))
     print("Recall",metrics.recall_score(test_labels,predicted_labels, pos_label=1)) 
     print("F1",metrics.f1_score(test_labels,predicted_labels, pos_label=1))
-   # print(metrics.classification_report(test_labels, imdb_pipe.predict(test_set), digits=3))
+    #print(metrics.classification_report(test_labels, imdb_pipe.predict(test_set), digits=3))
     return imdb_pipe
 
 def sent140classify():
@@ -151,74 +162,9 @@ def tune_hyper_params(pipe):
     print(metrics.classification_report(test_labels, clf.predict(test_set), digits=3))
 
 def main():
-    #train_set, train_labels, test_set, test_labels = prepareTweetsCorpusForPipeline()
-    bow_vector = CountVectorizer(tokenizer = spacy_tokenize, ngram_range=(1,1))
-    tf_idf_vector = TfidfTransformer()
 
-    classifier = LogisticRegression(max_iter=300, solver='saga')
-    nb = MultinomialNB(alpha=.005, class_prior=[.2,.8])
-    """
-    pipe = Pipeline([('vectorizer', bow_vector),
-                     ('tfidf', tf_idf_vector),
-                     ('classifier', classifier)])
-    pipe.fit(train_set, train_labels)
-    predicted_labels = pipe.predict(test_set)
-    print("-----------LogisticRegression------------------")
-    print("Accuracy:",metrics.accuracy_score(test_labels,predicted_labels))
-    print("Precision",metrics.precision_score(test_labels,predicted_labels, pos_label=4))
-    print("Recall",metrics.recall_score(test_labels,predicted_labels, pos_label=4)) 
-    print("Recall",metrics.f1_score(test_labels,predicted_labels, pos_label=4))
-    hyperparameters = {
-        'vectorizer__ngram_range': [(1,1), (1,2), (2,2)],
-        'tfidf__use_idf': (True, False),
-        'tfidf__norm': ('l1', 'l2'),
-        'classifier__max_iter': [50, 100, 300],
-        'classifier__solver': ['lbfgs', 'sag', 'saga']
-    }
-
-    print("classification report")
-    print()
-    print(metrics.classification_report(test_labels, pipe.predict(test_set), digits=3))
-    clf = GridSearchCV(pipe, hyperparameters,cv=10, scoring='f1_micro')
-    clf.fit(train_set, train_labels)
-    print("Best params:")
-    print()
-    print(clf.best_params_)
-    print()
-    print("Grid Scores on the Dev Set:")
-    print()
-    for mean, std, params in zip(clf.cv_results_['mean_test_score'],
-                                 clf.cv_results_['std_test_score'],
-                                 clf.cv_results_['params']):
-        print("%0.3f (+/-%0.03f) for %r" % (mean, std  * 2, params))
-    print()
-    print("Classification report:")
-    print()
-    print(classification_report(test_labels, clf.predict(test_set), digits=3))
-    """
-
-    train_set, train_labels, test_set, test_labels = reader.load_imdb_dataset_LR(
-                                                                                './imdb_dataset/train',
-                                                                                './imdb_dataset/dev')
-    imessage_batch = reader.loadiMessageBatchesPipeline()
-    imessage_batch_pd = pd.Series(imessage_batch)
-    train_set = pd.Series(train_set)
-    train_labels = pd.Series(train_labels)
-    test_set = pd.Series(test_set)
-    test_labels = pd.Series(test_labels)
-    imdb_pipe = Pipeline([('vectorizer', bow_vector),
-                     ('tfidf', tf_idf_vector),
-                     ('classifier', classifier)])
-    imdb_pipe.fit(train_set, train_labels)
-    """
-    predicted_labels = imdb_pipe.predict(test_set)
-    print("-----------LogisticRegression------------------")
-    print("Accuracy:",metrics.accuracy_score(test_labels,predicted_labels))
-    print("Precision",metrics.precision_score(test_labels,predicted_labels, pos_label=1))
-    print("Recall",metrics.recall_score(test_labels,predicted_labels, pos_label=1)) 
-    print("F1",metrics.f1_score(test_labels,predicted_labels, pos_label=1))
-    """
-   # print(metrics.classification_report(test_labels, imdb_pipe.predict(test_set), digits=3))
+    imdb_classify()
+    #sent140classify()
 
 if __name__ == "__main__":
     main()

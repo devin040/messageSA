@@ -16,7 +16,7 @@ from nltk.tokenize import RegexpTokenizer
 from tqdm import tqdm
 import json
 import pandas as pd
-import pudb; pu.db
+#import pudb; pu.db
 import spacy
 import string
 from spacy.lang.en.stop_words import STOP_WORDS
@@ -161,9 +161,11 @@ def loadTweets(stemming, lower_case):
 
     return train_tweets, train_tweets_labels, test_tweets, test_tweets_labels
 
-def load_imdb_LR(name):
+def load_imdb_train_LR(name):
     X0 = []
-    for f in tqdm(listdir(name)):
+    files = np.array(listdir(name))
+    files = files[:10000:2]
+    for f in tqdm(files):
         fullname = name+f
         text = ""
         with open(fullname, 'rb') as f:
@@ -173,6 +175,19 @@ def load_imdb_LR(name):
         X0.append(text)
     return X0
 
+def load_imdb_test_LR(name):
+    X0 = []
+    files = np.array(listdir(name))
+    files = files[:12000:6]
+    for f in tqdm(files):
+        fullname = name+f
+        text = ""
+        with open(fullname, 'rb') as f:
+            for line in f:
+                line = line.decode(errors='ignore')
+                text += line + " "
+        X0.append(text)
+    return X0
 
 def load_dataset(train_dir, dev_dir, stemming, lower_case):
     X0 = loadDir(train_dir + '/pos/',stemming, lower_case)
@@ -194,15 +209,15 @@ def load_imessage_dataset(stemming, lower_case):
     return X_imessage, X_imessage_batch
 
 def load_imdb_dataset_LR(train_dir, dev_dir):
-    X0 = load_imdb_LR(train_dir + '/pos/')
-    X1 = load_imdb_LR(train_dir + '/neg/')
+    X0 = load_imdb_train_LR('imdb_new_dataset/aclimdb/train/pos/')
+    X1 = load_imdb_train_LR('imdb_new_dataset/aclimdb/train/neg/')
     X = X0 + X1
     Y = len(X0) * [1] + len(X1) * [0]
     X = np.array(X)
     Y = np.array(Y)
 
-    X_test0 = load_imdb_LR(dev_dir + '/pos/')
-    X_test1 = load_imdb_LR(dev_dir + '/neg/')
+    X_test0 = load_imdb_test_LR('imdb_new_dataset/aclimdb/test/pos/')
+    X_test1 = load_imdb_test_LR('imdb_new_dataset/aclimdb/test/neg/')
     X_test = X_test0 + X_test1
     Y_test = len(X_test0) * [1] + len(X_test1) * [0]
     X_test = np.array(X_test)
@@ -211,7 +226,7 @@ def load_imdb_dataset_LR(train_dir, dev_dir):
 
 def loadiMessageBatchesPipeline():
     texts = []
-    ret = [] 
+    ret = []
     with open("./message_data/zun_texts.json", "r") as f:
         texts = json.load(f)
     for i in range(0, len(texts)-6, 6):
