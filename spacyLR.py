@@ -73,9 +73,7 @@ def analyze_imessages_to_file(pipe):
 
 def imdb_classify():
 
-    train_set, train_labels, test_set, test_labels = reader.load_imdb_dataset_LR(
-                                                                                './imdb_dataset/train',
-                                                                                './imdb_dataset/dev')
+    train_set, train_labels, test_set, test_labels = reader.load_imdb_dataset_LR()
     train_set = pd.Series(train_set)
     train_labels = pd.Series(train_labels)
     test_set = pd.Series(test_set)
@@ -88,10 +86,10 @@ def imdb_classify():
     imdb_pipe = Pipeline([('vectorizer', bow_vector),
                      ('tfidf', tf_idf_vector),
                      ('classifier', classifier)])
-    cm = ConfusionMatrix(imdb_pipe, classes=[0,1], label_encoder={0:'neg', 1:'pos'})
-    cm.fit(train_set, train_labels)
-    cm.score(test_set, test_labels)
-    cm.show(outpath="cm.png")
+    #cm = ConfusionMatrix(imdb_pipe, classes=[0,1], label_encoder={0:'neg', 1:'pos'})
+    #cm.fit(train_set, train_labels)
+    #cm.score(test_set, test_labels)
+    #cm.show(outpath="cm.png")
     imdb_pipe.fit(train_set, train_labels)
     predicted_labels = imdb_pipe.predict(test_set)
     print("-----------LogisticRegression------------------")

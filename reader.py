@@ -208,7 +208,7 @@ def load_imessage_dataset(stemming, lower_case):
     X_imessage_batch = loadiMessageBatches(stemming, lower_case)
     return X_imessage, X_imessage_batch
 
-def load_imdb_dataset_LR(train_dir, dev_dir):
+def load_imdb_dataset_LR():
     X0 = load_imdb_train_LR('imdb_new_dataset/aclimdb/train/pos/')
     X1 = load_imdb_train_LR('imdb_new_dataset/aclimdb/train/neg/')
     X = X0 + X1
