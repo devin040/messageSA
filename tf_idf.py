@@ -90,7 +90,7 @@ def spacy_tokenize(text):
     for token in nlp(str(text)):
         #if token.is_punct:
         #    continue
-        if token.is_space or token.text[0] == '@' or token.text.lower() in stop_words:
+        if token.is_space or token.text[0] == '@' or token.text[0] == '.':
             continue
-        tokenized.append(token.lemma_.lower())
+        tokenized.append(token.text.lower())
     return tokenized

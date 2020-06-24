@@ -16,7 +16,7 @@ from nltk.tokenize import RegexpTokenizer
 from tqdm import tqdm
 import json
 import pandas as pd
-#import pudb; pu.db
+import pudb; pu.db
 import spacy
 import string
 from spacy.lang.en.stop_words import STOP_WORDS
@@ -101,7 +101,7 @@ def loadTweets(stemming, lower_case):
     tweets = pd.read_csv('training.1600000.processed.noemoticon.csv', engine='python')
     tweets_arr = []
     for row in tweets.itertuples():
-        tweets_arr.append((int(row[0]), row[5]))
+        tweets_arr.append((int(row[1]), row[6]))
     tweets_arr = np.array(tweets_arr)
     train_tweets = []
     train_tweets_ret = []
@@ -161,6 +161,19 @@ def loadTweets(stemming, lower_case):
 
     return train_tweets, train_tweets_labels, test_tweets, test_tweets_labels
 
+def load_imdb_LR(name):
+    X0 = []
+    for f in tqdm(listdir(name)):
+        fullname = name+f
+        text = ""
+        with open(fullname, 'rb') as f:
+            for line in f:
+                line = line.decode(errors='ignore')
+                text += line + " "
+        X0.append(text)
+    return X0
+
+
 def load_dataset(train_dir, dev_dir, stemming, lower_case):
     X0 = loadDir(train_dir + '/pos/',stemming, lower_case)
     X1 = loadDir(train_dir + '/neg/',stemming, lower_case)
@@ -179,3 +192,34 @@ def load_imessage_dataset(stemming, lower_case):
     X_imessage = loadiMessagesDir(None, None, stemming, lower_case)
     X_imessage_batch = loadiMessageBatches(stemming, lower_case)
     return X_imessage, X_imessage_batch
+
+def load_imdb_dataset_LR(train_dir, dev_dir):
+    X0 = load_imdb_LR(train_dir + '/pos/')
+    X1 = load_imdb_LR(train_dir + '/neg/')
+    X = X0 + X1
+    Y = len(X0) * [1] + len(X1) * [0]
+    X = np.array(X)
+    Y = np.array(Y)
+
+    X_test0 = load_imdb_LR(dev_dir + '/pos/')
+    X_test1 = load_imdb_LR(dev_dir + '/neg/')
+    X_test = X_test0 + X_test1
+    Y_test = len(X_test0) * [1] + len(X_test1) * [0]
+    X_test = np.array(X_test)
+    Y_test = np.array(Y_test)
+    return X,Y,X_test,Y_test
+
+def loadiMessageBatchesPipeline():
+    texts = []
+    ret = [] 
+    with open("./message_data/zun_texts.json", "r") as f:
+        texts = json.load(f)
+    for i in range(0, len(texts)-6, 6):
+        text = ""
+        for j in range(6):
+            if texts[i+j]['text'] is not None:
+                text += texts[i+j]['text']
+                text += " "
+        #ret.append((text, texts[i]['timestamp']))
+        ret.append(text.strip())
+    return ret

@@ -24,6 +24,8 @@ import tf_idf
 from sklearn.base import TransformerMixin
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.svm import LinearSVC, SVC
+from sklearn.neural_network import MLPClassifier
+from sklearn.model_selection import GridSearchCV
 """
 This file contains the main application that is run for Part 2 of this MP.
 """
@@ -55,7 +57,6 @@ class DenseTransformer(TransformerMixin):
         return X.todense()
 
 def main(args):
-    """
     train_set, train_labels, dev_set, dev_labels = reader.load_dataset(args.training_dir,args.development_dir,args.stemming,args.lower_case)
     imessages, imessage_batches = reader.load_imessage_dataset(args.stemming, args.lower_case)
     predicted_labels = nb.naiveBayesMixture(train_set, train_labels, dev_set, imessages, imessage_batches, args.bigram_lambda, args.unigram_smoothing, args.bigram_smoothing, args.pos_prior)
@@ -74,19 +75,6 @@ def main(args):
     print("F1-Score:",f1)
     print("Precision:",precision)
     print("Recall:",recall)
-    """
-    train_set, train_labels, test_set, test_labels = tf_idf.prepareTweetsCorpusForPipeline()
-    classifier = LinearSVC()
-    bow_vector = CountVectorizer(tokenizer = tf_idf.spacy_tokenize, ngram_range=(1,1))
-    tf_idf_vector = TfidfTransformer()
-    pipe = Pipeline([('vectorizer', bow_vector),
-                     ('tfidf', tf_idf_vector),
-                     ('classifier', classifier)])
-    pipe.fit(train_set, train_labels)
-    predicted_labels = pipe.predict(test_set)
-    print("Accuracy:",metrics.accuracy_score(test_labels,predicted_labels))
-    print("Precision",metrics.precision_score(test_labels,predicted_labels, pos_label=4))
-    print("Recall",metrics.recall_score(test_labels,predicted_labels, pos_label=4))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='CS440 MP3 Naive Bayes Mixture (Part 2)')
